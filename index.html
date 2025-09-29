@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJI 360 Converter - Facebook Ready</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>DJI 360 Converter</h1>
+            <p>Convert your DJI 360 images for optimal Facebook posting</p>
+        </header>
+
+        <main class="main-content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <h3>Drop your DJI 360 images here</h3>
+                    <p>or click to browse files</p>
+                    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" multiple hidden>
+                </div>
+            </div>
+
+            <div class="processing-section" id="processingSection" style="display: none;">
+                <h3>Processing Images</h3>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+                <div class="processing-info" id="processingInfo"></div>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h3>Converted Images</h3>
+                <div class="images-grid" id="imagesGrid"></div>
+                <div class="download-section">
+                    <button class="btn btn-primary" id="downloadAllBtn">Download All</button>
+                    <button class="btn btn-secondary" id="resetBtn">Convert More Images</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>About DJI 360 Conversion</h3>
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h4>📱 Facebook Optimized</h4>
+                        <p>Converts 360° images to Facebook's recommended format for better visibility and engagement.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🎯 Smart Processing</h4>
+                        <p>Automatically adjusts aspect ratio, resolution, and compression for optimal social media performance.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>⚡ Fast & Secure</h4>
+                        <p>Client-side processing means your images never leave your device - fast and private.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 DJI360Converter - Making 360° content social media ready</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
