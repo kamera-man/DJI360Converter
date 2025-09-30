@@ -21,6 +21,14 @@ class DJI360Converter {
             this.fileInput.click();
         });
 
+        // Keyboard support for upload area
+        this.uploadArea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.fileInput.click();
+            }
+        });
+
         // File input change
         this.fileInput.addEventListener('change', (e) => {
             this.handleFiles(Array.from(e.target.files));
@@ -56,15 +64,70 @@ class DJI360Converter {
         });
     }
 
+    showError(message) {
+        // Create or update error message element
+        let errorDiv = document.getElementById('errorMessage');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.id = 'errorMessage';
+            errorDiv.className = 'error-message';
+            this.uploadArea.parentNode.insertBefore(errorDiv, this.uploadArea.nextSibling);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        
+        // Hide error after 5 seconds
+        setTimeout(() => {
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }, 5000);
+    }
+
+    hideError() {
+        const errorDiv = document.getElementById('errorMessage');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    }
+
     handleFiles(files) {
+        this.hideError(); // Clear any previous errors
+        
         if (files.length === 0) {
-            alert('Please select at least one image file.');
+            this.showError('Please select at least one image file.');
             return;
         }
 
-        console.log(`Processing ${files.length} files:`, files.map(f => f.name));
+        // Validate file types and sizes
+        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
+        const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/tiff', 'image/tif'];
+        const validFiles = [];
+        const errors = [];
+
+        for (const file of files) {
+            if (!supportedTypes.includes(file.type.toLowerCase())) {
+                errors.push(`${file.name}: Unsupported file type. Please use JPEG, PNG, or TIFF.`);
+                continue;
+            }
+            if (file.size > maxFileSize) {
+                errors.push(`${file.name}: File too large. Maximum size is 50MB.`);
+                continue;
+            }
+            validFiles.push(file);
+        }
+
+        if (errors.length > 0) {
+            this.showError('Some files could not be processed:\n\n' + errors.join('\n'));
+        }
+
+        if (validFiles.length === 0) {
+            return;
+        }
+
+        console.log(`Processing ${validFiles.length} files:`, validFiles.map(f => f.name));
         this.showProcessingSection();
-        this.processImages(files);
+        this.processImages(validFiles);
     }
 
     showProcessingSection() {
@@ -94,7 +157,7 @@ class DJI360Converter {
                 this.processedImages.push(processedImage);
             } catch (error) {
                 console.error(`Error processing ${file.name}:`, error);
-                alert(`Error processing ${file.name}: ${error.message}`);
+                this.showError(`Error processing ${file.name}: ${error.message}`);
             }
         }
 
@@ -108,11 +171,11 @@ class DJI360Converter {
     async convertImage(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 const img = new Image();
-                img.onload = () => {
+                img.onload = async () => {
                     try {
-                        const result = this.processImageForFacebook(img, file);
+                        const result = await this.processImageForFacebook(img, file);
                         resolve(result);
                     } catch (error) {
                         reject(error);
@@ -157,8 +220,12 @@ class DJI360Converter {
         this.applyFacebookOptimization(ctx, width, height);
 
         // Convert to blob
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('Failed to process image to blob'));
+                    return;
+                }
                 const url = URL.createObjectURL(blob);
                 resolve({
                     originalName: originalFile.name,
