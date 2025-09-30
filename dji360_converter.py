@@ -2,6 +2,9 @@
 """
 DJI 360 Converter - Backend Processing Module
 Handles advanced image processing for DJI 360 images to optimize them for Facebook posting
+
+This module provides both command-line interface and programmatic access for converting
+DJI 360° images to Facebook's optimal format for better social media engagement.
 """
 
 import os
@@ -10,14 +13,22 @@ from PIL import Image, ImageEnhance, ImageFilter
 import argparse
 from pathlib import Path
 import json
+from typing import Dict, List, Union, Optional
 
 class DJI360Processor:
+    """
+    Main processor class for DJI 360° image optimization.
+    
+    This class handles the conversion of DJI 360° images to Facebook's optimal format,
+    including resizing, aspect ratio correction, and quality enhancement.
+    """
+    
     def __init__(self):
         self.facebook_optimal_width = 2048
         self.facebook_optimal_height = 1024
         self.quality = 90
 
-    def process_image(self, input_path, output_path=None):
+    def process_image(self, input_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Dict:
         """
         Process a single DJI 360 image for Facebook optimization
         
@@ -29,10 +40,21 @@ class DJI360Processor:
             dict: Processing results with metadata
         """
         try:
+            # Validate input file exists and is readable
+            input_path_obj = Path(input_path)
+            if not input_path_obj.exists():
+                raise FileNotFoundError(f"Input file does not exist: {input_path}")
+            if not input_path_obj.is_file():
+                raise ValueError(f"Input path is not a file: {input_path}")
+                
             # Open and validate image
             with Image.open(input_path) as img:
                 original_size = img.size
                 original_file_size = os.path.getsize(input_path)
+                
+                # Validate image dimensions
+                if original_size[0] < 100 or original_size[1] < 100:
+                    raise ValueError(f"Image too small: {original_size}. Minimum size is 100x100 pixels.")
                 
                 # Convert to RGB if necessary
                 if img.mode != 'RGB':
@@ -49,8 +71,11 @@ class DJI360Processor:
                 
                 # Generate output path if not provided
                 if output_path is None:
-                    input_path_obj = Path(input_path)
                     output_path = input_path_obj.parent / f"{input_path_obj.stem}_facebook_optimized.jpg"
+                
+                # Ensure output directory exists
+                output_path_obj = Path(output_path)
+                output_path_obj.parent.mkdir(parents=True, exist_ok=True)
                 
                 # Save processed image
                 processed_img.save(output_path, 'JPEG', quality=self.quality, optimize=True)
@@ -70,17 +95,31 @@ class DJI360Processor:
                     'size_reduction': round((1 - processed_file_size / original_file_size) * 100, 1)
                 }
                 
-        except Exception as e:
+        except (FileNotFoundError, ValueError) as e:
             return {
                 'success': False,
                 'error': str(e),
                 'input_path': str(input_path)
             }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Unexpected error: {str(e)}",
+                'input_path': str(input_path)
+            }
 
-    def _calculate_optimal_size(self, original_size):
+    def _calculate_optimal_size(self, original_size: tuple) -> tuple:
         """
-        Calculate optimal dimensions for Facebook posting
-        Prefers 2:1 aspect ratio for 360 images
+        Calculate optimal dimensions for Facebook posting.
+        
+        Facebook prefers 2:1 aspect ratio for 360° images for optimal display.
+        This method calculates the best dimensions while maintaining image quality.
+        
+        Args:
+            original_size (tuple): Original image dimensions (width, height)
+            
+        Returns:
+            tuple: Optimal dimensions (width, height) for Facebook
         """
         orig_width, orig_height = original_size
         target_ratio = 2.0  # 2:1 aspect ratio ideal for 360 images
@@ -111,9 +150,18 @@ class DJI360Processor:
         
         return (new_width, new_height)
 
-    def _apply_facebook_optimization(self, img):
+    def _apply_facebook_optimization(self, img: Image.Image) -> Image.Image:
         """
-        Apply Facebook-specific optimizations to enhance social media appearance
+        Apply Facebook-specific optimizations to enhance social media appearance.
+        
+        This applies subtle enhancements that improve how images appear on mobile devices
+        and in social media feeds, including sharpening and contrast adjustments.
+        
+        Args:
+            img (PIL.Image.Image): Input image to optimize
+            
+        Returns:
+            PIL.Image.Image: Optimized image
         """
         # Slight sharpening for better appearance on mobile devices
         sharpened = img.filter(ImageFilter.UnsharpMask(radius=1, percent=110, threshold=3))
@@ -128,7 +176,7 @@ class DJI360Processor:
         
         return enhanced
 
-    def process_batch(self, input_directory, output_directory=None):
+    def process_batch(self, input_directory: Union[str, Path], output_directory: Optional[Union[str, Path]] = None) -> List[Dict]:
         """
         Process multiple images in a directory
         """

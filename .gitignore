@@ -42,5 +42,12 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Generated sample files
+sample_dji_360_image*.jpg
+*_facebook_optimized.jpg
+
+# Test outputs
+test_output.jpg
+
 # Logs
 *.log

@@ -55,17 +55,46 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     background: #f8f9ff;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-area::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border-radius: 15px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.upload-area:hover::before,
+.upload-area:focus::before {
+    opacity: 0.1;
 }
 
 .upload-area:hover {
     border-color: #5a6fd8;
     background: #f0f2ff;
     transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.upload-area:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
 }
 
 .upload-area.dragover {
     border-color: #4CAF50;
     background: #e8f5e8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
 }
 
 .upload-icon {
@@ -287,6 +316,14 @@ body {
         padding: 40px 10px;
     }
     
+    .upload-area h3 {
+        font-size: 1.2rem;
+    }
+    
+    .upload-area p {
+        font-size: 0.9rem;
+    }
+    
     .progress-container {
         flex-direction: column;
         gap: 10px;
@@ -298,10 +335,22 @@ body {
     
     .download-section {
         flex-direction: column;
+        gap: 10px;
     }
     
     .btn {
         width: 100%;
+        margin: 5px 0;
+    }
+    
+    .images-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .info-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
 }
 
@@ -318,4 +367,31 @@ body {
     to {
         opacity: 1;
     }
+}
+
+/* Loading spinner for better UX */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error message styling */
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    border-left: 4px solid #c62828;
 }
